@@ -1,44 +1,89 @@
-# For more information about using CMake with Android Studio, read the
-# documentation: https://d.android.com/studio/projects/add-native-code.html
+cmake_minimum_required(VERSION 3.0)
 
-# Sets the minimum version of CMake required to build the native library.
+set(PROJECT_NAME "vncserver-lib")
 
-cmake_minimum_required(VERSION 3.4.1)
+set(CMAKE_FIND_ROOT_PATH ${CMAKE_INSTALL_PREFIX})
 
-# Creates and names a library, sets it as either STATIC
-# or SHARED, and provides the relative paths to its source code.
-# You can define multiple libraries, and CMake builds them for you.
-# Gradle automatically packages shared libraries with your APK.
+# MUST be done before call to 'project'
+# See https://cmake.org/pipermail/cmake/2018-January/067002.html
+get_cmake_property(vars CACHE_VARIABLES)
+foreach(var ${vars})
+    get_property(currentHelpString CACHE "${var}" PROPERTY HELPSTRING)
+    if("${currentHelpString}" MATCHES "No help, variable specified on the command line." OR "${currentHelpString}" STREQUAL "")
+        # message("${var} = [${${var}}]  --  ${currentHelpString}") # uncomment to see the variables being processed
+        list(APPEND CL_ARGS "-D${var}=${${var}}")
+    endif()
+endforeach()
 
-add_library( # Sets the name of the library.
-             native-lib
+# Build the dependencies first
 
-             # Sets the library as a shared library.
-             SHARED
+include(ExternalProject)
 
-             # Provides a relative path to your source file(s).
-             native-lib.cpp )
+ExternalProject_Add(project-libjpeg-turbo
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libjpeg-turbo
+    CMAKE_ARGS ${CL_ARGS} -DENABLE_SHARED=OFF
+    BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libturbojpeg.a
+)
+add_library(jpegturbo STATIC IMPORTED)
+set_property(TARGET jpegturbo PROPERTY
+    IMPORTED_LOCATION ${CMAKE_INSTALL_PREFIX}/lib/libturbojpeg.a
+)
 
-# Searches for a specified prebuilt library and stores the path as a
-# variable. Because CMake includes system libraries in the search path by
-# default, you only need to specify the name of the public NDK library
-# you want to add. CMake verifies that the library exists before
-# completing its build.
+ExternalProject_Add(project-libpng
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libpng
+    CMAKE_ARGS ${CL_ARGS} -DPNG_SHARED=OFF -DPNG_TESTS=OFF -DCMAKE_FIND_ROOT_PATH=${CMAKE_INSTALL_PREFIX}
+    BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libpng.a
+)
+add_library(png STATIC IMPORTED)
+set_property(TARGET png PROPERTY
+    IMPORTED_LOCATION ${CMAKE_INSTALL_PREFIX}/lib/libpng.a
+)
 
-find_library( # Sets the name of the path variable.
-              log-lib
+# Build the native library
 
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+project(${PROJECT_NAME})
 
-# Specifies libraries CMake should link to your target library. You
-# can link multiple libraries, such as libraries you define in this
-# build script, prebuilt third-party libraries, or system libraries.
+add_library(vncserver SHARED
+    native-lib.cpp
+    libvncserver/libvncserver/main.c
+    libvncserver/libvncserver/rfbserver.c
+    libvncserver/libvncserver/rfbregion.c
+    libvncserver/libvncserver/auth.c
+    libvncserver/libvncserver/sockets.c
+    libvncserver/libvncserver/stats.c
+    libvncserver/libvncserver/corre.c
+    libvncserver/libvncserver/hextile.c
+    libvncserver/libvncserver/rre.c
+    libvncserver/libvncserver/translate.c
+    libvncserver/libvncserver/cutpaste.c
+    libvncserver/libvncserver/httpd.c
+    libvncserver/libvncserver/cursor.c
+    libvncserver/libvncserver/font.c
+    libvncserver/libvncserver/draw.c
+    libvncserver/libvncserver/selbox.c
+    libvncserver/libvncserver/cargs.c
+    libvncserver/libvncserver/ultra.c
+    libvncserver/libvncserver/scale.c
+    libvncserver/libvncserver/zlib.c
+    libvncserver/libvncserver/zrle.c
+    libvncserver/libvncserver/zrleoutstream.c
+    libvncserver/libvncserver/zrlepalettehelper.c
+    libvncserver/libvncserver/tight.c
+    libvncserver/common/d3des.c
+    libvncserver/common/vncauth.c
+    libvncserver/common/minilzo.c
+    libvncserver/common/zywrletemplate.c
+    libvncserver/common/turbojpeg.c
+)
 
-target_link_libraries( # Specifies the target library.
-                       native-lib
+add_dependencies(vncserver project-libpng project-libjpeg-turbo)
 
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+include_directories(
+    ${CMAKE_INSTALL_PREFIX}/include
+    libvncserver/
+    libvncserver//common
+    libvncserver/libvncserver
+)
+
+target_link_libraries(vncserver png jpegturbo z)
+

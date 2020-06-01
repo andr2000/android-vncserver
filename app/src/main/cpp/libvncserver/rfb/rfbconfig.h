@@ -118,10 +118,10 @@
 #endif
 
 /* openssl libcrypto library present */
-/* #undef LIBVNCSERVER_HAVE_LIBCRYPTO */
+#undef LIBVNCSERVER_HAVE_LIBCRYPTO
 
 /* Define to 1 if you have the `cygipc' library (-lcygipc). */
-/* #undef LIBVNCSERVER_HAVE_LIBCYGIPC */
+#undef LIBVNCSERVER_HAVE_LIBCYGIPC
 
 /* libjpeg support enabled */
 #ifndef LIBVNCSERVER_HAVE_LIBJPEG 
@@ -150,6 +150,7 @@
 #ifndef LIBVNCSERVER_HAVE_LIBSSL 
 #define LIBVNCSERVER_HAVE_LIBSSL  1 
 #endif
+#undef LIBVNCSERVER_HAVE_LIBSSL
 
 /* XDAMAGE extension build environment present */
 /* #undef LIBVNCSERVER_HAVE_LIBXDAMAGE */
@@ -524,6 +525,7 @@
 #ifndef LIBVNCSERVER_WITH_WEBSOCKETS 
 #define LIBVNCSERVER_WITH_WEBSOCKETS  1 
 #endif
+#undef LIBVNCSERVER_WITH_WEBSOCKETS
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
