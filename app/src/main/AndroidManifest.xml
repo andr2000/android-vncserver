@@ -13,6 +13,7 @@
         android:theme="@style/AppTheme">
         <service
             android:name=".VncProjectionService"
+            android:foregroundServiceType="mediaProjection"
             android:enabled="true"
             android:exported="true">
         </service>

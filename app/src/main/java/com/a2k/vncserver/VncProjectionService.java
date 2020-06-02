@@ -4,13 +4,26 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.IBinder;
+import android.os.Parcelable;
 
 public class VncProjectionService extends Service {
     public static final String TAG = MainActivity.TAG;
+    public static final String PROJECTION_RESULT_KEY = "projection_result";
+    public static final String PROJECTION_RESULT_CODE = "projection_result_code";
+    public static final String PROJECTION_RESULT_DATA = "projection_result_data";
     private static final int NOTIFICATION_ID = 12345678;
     private static final String CHANNEL_ID = "channel_01";
+
+    private int mProjectionResultCode;
+    private Parcelable mProjectionResultData;
+
+    private MediaProjectionManager mMediaProjectionManager;
+    private MediaProjection mMediaProjection;
 
     public VncProjectionService() {
     }
@@ -41,6 +54,8 @@ public class VncProjectionService extends Service {
     public void onCreate() {
         super.onCreate();
         setupAndStartForegroundService();
+        mMediaProjectionManager = (MediaProjectionManager)getSystemService(
+                Context.MEDIA_PROJECTION_SERVICE);
     }
 
     @Override
@@ -50,7 +65,11 @@ public class VncProjectionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        return super.onStartCommand(intent, flags, startId);
+        mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE,0);
+        mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
+        mMediaProjection = mMediaProjectionManager.getMediaProjection(
+                mProjectionResultCode, (Intent)mProjectionResultData);
+        return START_NOT_STICKY;
     }
 
     @Override
