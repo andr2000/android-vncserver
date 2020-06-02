@@ -44,7 +44,8 @@ set_property(TARGET png PROPERTY
 project(${PROJECT_NAME})
 
 add_library(vncserver SHARED
-    native-lib.cpp
+    vncjni.cpp
+    vncserver.cpp
     libvncserver/libvncserver/main.c
     libvncserver/libvncserver/rfbserver.c
     libvncserver/libvncserver/rfbregion.c
@@ -85,5 +86,5 @@ include_directories(
     libvncserver/libvncserver
 )
 
-target_link_libraries(vncserver png jpegturbo z)
+target_link_libraries(vncserver png jpegturbo z log)
 

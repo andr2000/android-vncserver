@@ -19,18 +19,13 @@ public class MainActivity extends AppCompatActivity {
     private ToggleButton mToggleButton;
     private MediaProjectionManager mMediaProjectionManager;
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("vncserver");
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         TextView tv = findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        tv.setText("Hello");
 
         mToggleButton = (ToggleButton) findViewById(R.id.toggle);
         mToggleButton.setOnClickListener(new View.OnClickListener() {
@@ -84,10 +79,4 @@ public class MainActivity extends AppCompatActivity {
             stopProjectionService();
         }
     }
-
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
 }

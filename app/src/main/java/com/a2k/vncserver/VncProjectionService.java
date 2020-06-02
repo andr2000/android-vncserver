@@ -1,5 +1,6 @@
 package com.a2k.vncserver;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -12,7 +13,10 @@ import android.hardware.display.VirtualDisplay;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.opengl.GLES20;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.Parcelable;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -20,13 +24,15 @@ import android.view.Surface;
 import android.view.WindowManager;
 
 public class VncProjectionService extends Service
-        implements SurfaceTexture.OnFrameAvailableListener {
+        implements SurfaceTexture.OnFrameAvailableListener,
+        VncJni.NotificationListener {
     public static final String TAG = MainActivity.TAG;
     public static final String PROJECTION_RESULT_KEY = "projection_result";
     public static final String PROJECTION_RESULT_CODE = "projection_result_code";
     public static final String PROJECTION_RESULT_DATA = "projection_result_data";
     private static final int NOTIFICATION_ID = 12345678;
     private static final String CHANNEL_ID = "channel_01";
+    private static final String MESSAGE_KEY = "text";
 
     private int mDisplayWidth = 800;
     private int mDisplayHeight = 480;
@@ -42,6 +48,8 @@ public class VncProjectionService extends Service
     private Surface mSurface;
     private TextureRender mTextureRender;
     private SurfaceTexture mSurfaceTexture;
+
+    private VncJni mVncJni = null;
 
     public VncProjectionService() {
     }
@@ -72,21 +80,30 @@ public class VncProjectionService extends Service
     public void onCreate() {
         super.onCreate();
         setupAndStartForegroundService();
-        mMediaProjectionManager = (MediaProjectionManager)getSystemService(
+        mMediaProjectionManager = (MediaProjectionManager) getSystemService(
                 Context.MEDIA_PROJECTION_SERVICE);
+        mVncJni = new VncJni();
+        mVncJni.setNotificationListener(VncProjectionService.this);
+        mVncJni.init();
+        Log.d(TAG, mVncJni.protoGetVersion());
+        mVncJni.startServer(mDisplayWidth, mDisplayHeight,
+                mPixelFormat, false);
     }
 
     @Override
     public void onDestroy() {
+        mVncJni.stopServer();
         stopProjection();
         super.onDestroy();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE,0);
-        mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
-        startProjection();
+        /* FIXME: called twice */
+        if (mProjectionResultData == null) {
+            mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE, 0);
+            mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
+        }
         return START_NOT_STICKY;
     }
 
@@ -154,6 +171,61 @@ public class VncProjectionService extends Service
             mTextureRender.swapBuffers();
         }
     }
+
+    public void onNotification(int what, String message)
+    {
+        Message msg = new Message();
+        msg.what = what;
+        Bundle data = new Bundle();
+        data.putString(MESSAGE_KEY, message);
+        msg.setData(data);
+        mHandler.sendMessage(msg);
+    }
+
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler = new Handler()
+    {
+        @Override
+        public void handleMessage(Message msg)
+        {
+            Bundle bundle = msg.getData();
+            switch (msg.what) {
+                case VncJni.SERVER_STARTED:
+                {
+                    Log.i(TAG, bundle.getString(MESSAGE_KEY) + "\n");
+                    break;
+                }
+                case VncJni.SERVER_STOPPED:
+                {
+                    /* as we might stop vnc server before receiving disconnect
+                     * notifications, so clean up here, so projection can be started */
+                    Log.i(TAG, bundle.getString(MESSAGE_KEY) + "\n");
+                    break;
+                }
+                case VncJni.CLIENT_CONNECTED:
+                {
+                    startProjection();
+                    String ip = bundle.getString(MESSAGE_KEY);
+                    String text = "Client " + ip + " connected";
+                    Log.i(TAG, text + "\n");
+                    break;
+                }
+                case VncJni.CLIENT_DISCONNECTED:
+                {
+                    stopProjection();
+                    String ip = bundle.getString(MESSAGE_KEY);
+                    String text = "Client " + ip + " disconnected";
+                    Log.i(TAG, text + "\n");
+                    break;
+                }
+                default:
+                {
+                    Log.d(TAG, "what = " + msg.what + " text = " + bundle.getString(MESSAGE_KEY));
+                    break;
+                }
+            }
+        }
+    };
 
     @Override
     public IBinder onBind(Intent intent) {
