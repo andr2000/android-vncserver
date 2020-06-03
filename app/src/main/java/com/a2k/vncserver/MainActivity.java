@@ -5,10 +5,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Surface;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -23,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     private MediaProjectionManager mMediaProjectionManager;
 
     private VncProjectionService mVncProjectionService;
+
+    private int mCurrentRotation = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +79,18 @@ public class MainActivity extends AppCompatActivity {
             stopService(intent);
             mVncProjectionService = null;
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        if (rotation == mCurrentRotation)
+            return;
+        if (mVncProjectionService != null)
+            mVncProjectionService.onScreenRotation(rotation);
+        mCurrentRotation = rotation;
     }
 
     private ServiceConnection mVncConnection = new ServiceConnection()

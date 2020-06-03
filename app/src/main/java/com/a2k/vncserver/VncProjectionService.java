@@ -226,6 +226,11 @@ public class VncProjectionService extends Service
         }
     };
 
+    public void onScreenRotation(int rotation) {
+        if (mTextureRender != null)
+            mTextureRender.setHeightOffset(getHeightOffset());
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE, 0);
