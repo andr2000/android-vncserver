@@ -22,6 +22,12 @@ class TextureRender {
     private int mWidth;
     private int mHeight;
 
+    public void setHeightOffset(int mHeightOffset) {
+        this.mHeightOffset = mHeightOffset;
+    }
+
+    private int mHeightOffset;
+
     private EGL10 mEgl;
     private EGLDisplay mEglDisplay;
     private EGLContext mEglContext;
@@ -129,6 +135,7 @@ class TextureRender {
                 mTriangleVerticesData.length * FLOAT_SIZE_BYTES)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
         mTriangleVertices.put(mTriangleVerticesData).position(0);
+        setHeightOffset(0);
 
         Matrix.setIdentityM(mSTMatrix, 0);
     }
@@ -150,7 +157,7 @@ class TextureRender {
     private void draw() {
         checkGlError("onDrawFrame start");
 
-        GLES20.glViewport(0, 0, mWidth, mHeight);
+        GLES20.glViewport(0, -mHeightOffset, mWidth, mHeight + mHeightOffset * 2);
         GLES20.glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 

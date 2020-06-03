@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
@@ -20,6 +21,7 @@ import android.os.Message;
 import android.os.Parcelable;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -106,6 +108,17 @@ public class VncProjectionService extends Service
         return START_NOT_STICKY;
     }
 
+    private int getHeightOffset() {
+        /* HACK: This is used to remove black edges in landscape mode via scaling
+         * the image to fit the virtual display's size
+         */
+        WindowManager wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point realSize = new Point();
+        display.getRealSize(realSize);
+        return (int)((mDisplayHeight - (float)mDisplayWidth / realSize.x * realSize.y) / 2);
+    }
+
     private void startProjection() {
         mMediaProjection = mMediaProjectionManager.getMediaProjection(
                 mProjectionResultCode, (Intent) mProjectionResultData);
@@ -113,6 +126,7 @@ public class VncProjectionService extends Service
         if (mSurface == null) {
             mTextureRender = new TextureRender(mVncJni,
                     mDisplayWidth, mDisplayHeight, mPixelFormat);
+            mTextureRender.setHeightOffset(getHeightOffset());
             mTextureRender.start();
             mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
             mSurfaceTexture.setDefaultBufferSize(mDisplayWidth, mDisplayHeight);
