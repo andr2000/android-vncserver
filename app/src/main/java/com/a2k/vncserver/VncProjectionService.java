@@ -14,6 +14,7 @@ import android.hardware.display.VirtualDisplay;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.opengl.GLES20;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -36,6 +37,8 @@ public class VncProjectionService extends Service
     private static final int NOTIFICATION_ID = 12345678;
     private static final String CHANNEL_ID = "channel_01";
     private static final String MESSAGE_KEY = "text";
+
+    private final IBinder mBinder = new VncProjectionServiceBinder();
 
     private int mDisplayWidth = 800;
     private int mDisplayHeight = 480;
@@ -101,10 +104,6 @@ public class VncProjectionService extends Service
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (mProjectionResultData == null) {
-            mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE, 0);
-            mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
-        }
         return START_NOT_STICKY;
     }
 
@@ -229,6 +228,14 @@ public class VncProjectionService extends Service
 
     @Override
     public IBinder onBind(Intent intent) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE, 0);
+        mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
+        return mBinder;
+    }
+
+    public class VncProjectionServiceBinder extends Binder {
+        VncProjectionService getService() {
+            return VncProjectionService.this;
+        }
     }
 }

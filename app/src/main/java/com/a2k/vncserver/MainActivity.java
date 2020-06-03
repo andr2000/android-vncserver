@@ -1,10 +1,13 @@
 package com.a2k.vncserver;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -18,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ToggleButton mToggleButton;
     private MediaProjectionManager mMediaProjectionManager;
+
+    private VncProjectionService mVncProjectionService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 VncProjectionService.class);
         intent.putExtra(VncProjectionService.PROJECTION_RESULT_CODE, resultCode);
         intent.putExtra(VncProjectionService.PROJECTION_RESULT_DATA, data);
-        startService(intent);
+        bindService(intent, mVncConnection, Context.BIND_AUTO_CREATE);
     }
 
     public void onToggleScreenShare(View view) {
@@ -64,7 +69,27 @@ public class MainActivity extends AppCompatActivity {
                     mMediaProjectionManager.createScreenCaptureIntent(),
                     PERMISSION_CODE);
         } else {
-            stopService(new Intent(this, VncProjectionService.class));
+            if (mVncProjectionService != null)
+                unbindService(mVncConnection);
+            Intent intent = new Intent(this,VncProjectionService.class);
+            stopService(intent);
+            mVncProjectionService = null;
         }
     }
+
+    private ServiceConnection mVncConnection = new ServiceConnection()
+    {
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            VncProjectionService.VncProjectionServiceBinder binder =
+                    (VncProjectionService.VncProjectionServiceBinder)service;
+            mVncProjectionService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mVncProjectionService = null;
+        }
+    };
 }
