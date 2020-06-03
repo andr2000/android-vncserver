@@ -44,6 +44,8 @@ set_property(TARGET png PROPERTY
 project(${PROJECT_NAME})
 
 add_library(vncserver SHARED
+    buffermanager.cpp
+    vncgraphicbuffer.cpp
     vncjni.cpp
     vncserver.cpp
     libvncserver/libvncserver/main.c
@@ -86,5 +88,5 @@ include_directories(
     libvncserver/libvncserver
 )
 
-target_link_libraries(vncserver png jpegturbo z log)
+target_link_libraries(vncserver png jpegturbo z log android EGL GLESv2)
 

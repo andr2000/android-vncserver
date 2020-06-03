@@ -117,7 +117,11 @@ class TextureRender {
     private int maPositionHandle;
     private int maTextureHandle;
 
-    public TextureRender(int width, int height, int pixelFormat) {
+    private VncJni mVncJni;
+
+    public TextureRender(VncJni vncJni, int width, int height,
+                         int pixelFormat) {
+        mVncJni = vncJni;
         mWidth = width;
         mHeight = height;
         mPixelFormat = pixelFormat;
@@ -137,7 +141,9 @@ class TextureRender {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer);
         draw();
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mEglTextures[TEX_RENDER_TEXTURE]);
+        mVncJni.bindNextGraphicBuffer();
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        mVncJni.frameAvailable();
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
     }
 
@@ -347,6 +353,7 @@ class TextureRender {
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
         checkGlError("glTexParameter");
+        mVncJni.bindNextGraphicBuffer();
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         mFrameBuffer = createFrameBuffer(width, height, mEglTextures[TEX_RENDER_TEXTURE], mDepthBuffer);
         Log.d(TAG, "OpenGL initialized");

@@ -31,12 +31,22 @@ public class VncJni
 		}
 	}
 
+	public void setRotation(int rotation)
+	{
+		onRotation(rotation);
+	}
+
 	public native void init();
 	public native String protoGetVersion();
+
+	public native void bindNextGraphicBuffer();
+	public native void frameAvailable();
 
 	public native int startServer(int width, int height,
 								  int pixelFormat, boolean fullFrameUpdate);
 	public native int stopServer();
+
+	public native void onRotation(int rotation);
 
 	static
 	{

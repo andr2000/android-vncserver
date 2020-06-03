@@ -33,6 +33,16 @@ extern "C"
 		return env->NewStringUTF(VncServer::getInstance().getVersion().c_str());
 	}
 
+	JNIEXPORT void JNICALL Java_com_a2k_vncserver_VncJni_bindNextGraphicBuffer(JNIEnv *env, jobject obj)
+	{
+		VncServer::getInstance().bindNextProducerBuffer();
+	}
+
+	JNIEXPORT void JNICALL Java_com_a2k_vncserver_VncJni_frameAvailable(JNIEnv *env, jobject obj)
+	{
+		VncServer::getInstance().frameAvailable();
+	}
+
 	JNIEXPORT jint JNICALL Java_com_a2k_vncserver_VncJni_startServer(JNIEnv *env, jobject obj,
 		jint width, jint height, jint pixelFormat, jboolean fullFrameUpdate)
 	{
@@ -42,5 +52,11 @@ extern "C"
 	JNIEXPORT jint JNICALL Java_com_a2k_vncserver_VncJni_stopServer(JNIEnv *env, jobject obj)
 	{
 		return VncServer::getInstance().stopServer();
+	}
+
+	JNIEXPORT void JNICALL Java_com_a2k_vncserver_VncJni_onRotation(JNIEnv *env, jobject obj,
+		jint rotation)
+	{
+		VncServer::getInstance().onRotation(rotation);
 	}
 }

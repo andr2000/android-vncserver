@@ -114,8 +114,8 @@ public class VncProjectionService extends Service
 
         if (mSurface == null)
         {
-            mTextureRender = new TextureRender(mDisplayWidth, mDisplayHeight,
-                    mPixelFormat);
+            mTextureRender = new TextureRender(mVncJni,
+                    mDisplayWidth, mDisplayHeight, mPixelFormat);
             mTextureRender.start();
             mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
             mSurfaceTexture.setDefaultBufferSize(mDisplayWidth, mDisplayHeight);

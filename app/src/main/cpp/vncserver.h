@@ -9,7 +9,9 @@
 #include <thread>
 #include <string>
 
+#include "buffermanager.h"
 #include "rfb/rfb.h"
+#include "vncgraphicbuffer.h"
 
 class VncServer
 {
@@ -39,6 +41,9 @@ public:
 
 	int startServer(int width, int height, int pixelFormat, bool fullFrameUpdate);
 	int stopServer();
+	void bindNextProducerBuffer();
+	void frameAvailable();
+	void onRotation(int rotation);
 
 	rfbNewClientAction clientHook(rfbClientPtr cl);
 	void clientGone(rfbClientPtr cl);
@@ -62,15 +67,26 @@ private:
 
 	std::thread m_WorkerThread;
 	std::atomic<bool> m_Terminated { true };
+	std::mutex m_FrameAvailableLock;
+	bool m_FrameAvailable { false };
 	void worker();
 
 	VncServer();
 
 	void cleanup();
 
+	VncGraphicBuffer *m_VncBuffer { nullptr };
+	VncGraphicBuffer *m_CmpBuffer { nullptr };
+	VncGraphicBuffer *m_GlBuffer { nullptr };
+	std::unique_ptr<BufferManager> m_BufferManager;
+	bool allocateBuffers(int width, int height, int pixelFormat, int fullFrameUpdate);
+	void releaseBuffers();
+
 	rfbScreenInfoPtr m_RfbScreenInfoPtr;
 	rfbScreenInfoPtr getRfbScreenInfoPtr();
 	void setVncFramebuffer();
+	void dumpFrame(char *buffer);
+	void compare(int width, int shift, uint32_t *buffer0, uint32_t *buffer1);
 };
 
 #endif /* LIBVNCSERVER_VNCSERVER_H_ */
