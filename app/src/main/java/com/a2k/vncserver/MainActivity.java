@@ -1,7 +1,5 @@
 package com.a2k.vncserver;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +9,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.ToggleButton;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "vncserver";
@@ -35,16 +35,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mMediaProjectionManager = (MediaProjectionManager)getSystemService(
+        mMediaProjectionManager = (MediaProjectionManager) getSystemService(
                 Context.MEDIA_PROJECTION_SERVICE);
     }
 
     @SuppressLint("MissingSuperCall")
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        if (requestCode != PERMISSION_CODE)
-        {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode != PERMISSION_CODE) {
             Log.e(TAG, "Unknown request code: " + requestCode);
             return;
         }
@@ -60,15 +58,13 @@ public class MainActivity extends AppCompatActivity {
         startService(intent);
     }
 
-    private void startProjectionService()
-    {
+    private void startProjectionService() {
         startActivityForResult(
                 mMediaProjectionManager.createScreenCaptureIntent(),
                 PERMISSION_CODE);
     }
 
-    private void stopProjectionService()
-    {
+    private void stopProjectionService() {
         stopService(new Intent(this, VncProjectionService.class));
     }
 

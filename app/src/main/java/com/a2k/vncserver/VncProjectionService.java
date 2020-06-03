@@ -54,10 +54,9 @@ public class VncProjectionService extends Service
     public VncProjectionService() {
     }
 
-    private void setupAndStartForegroundService()
-    {
+    private void setupAndStartForegroundService() {
         NotificationManager notificationManager =
-                (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         CharSequence name = getString(R.string.app_name);
         NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name,
                 NotificationManager.IMPORTANCE_LOW);
@@ -66,7 +65,7 @@ public class VncProjectionService extends Service
         }
         startForegroundService(new Intent(VncProjectionService.this,
                 VncProjectionService.class));
-        Notification.Builder builder = new Notification.Builder(getApplicationContext(),CHANNEL_ID)
+        Notification.Builder builder = new Notification.Builder(getApplicationContext(), CHANNEL_ID)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText("Projecting")
                 .setAutoCancel(true);
@@ -107,13 +106,11 @@ public class VncProjectionService extends Service
         return START_NOT_STICKY;
     }
 
-    private void startProjection()
-    {
+    private void startProjection() {
         mMediaProjection = mMediaProjectionManager.getMediaProjection(
-                mProjectionResultCode, (Intent)mProjectionResultData);
+                mProjectionResultCode, (Intent) mProjectionResultData);
 
-        if (mSurface == null)
-        {
+        if (mSurface == null) {
             mTextureRender = new TextureRender(mVncJni,
                     mDisplayWidth, mDisplayHeight, mPixelFormat);
             mTextureRender.start();
@@ -134,8 +131,7 @@ public class VncProjectionService extends Service
         }
     }
 
-    private void stopProjection()
-    {
+    private void stopProjection() {
         if (mSurfaceTexture != null) {
             mSurfaceTexture.setOnFrameAvailableListener(null);
         }
@@ -172,8 +168,7 @@ public class VncProjectionService extends Service
         }
     }
 
-    public void onNotification(int what, String message)
-    {
+    public void onNotification(int what, String message) {
         Message msg = new Message();
         msg.what = what;
         Bundle data = new Bundle();
@@ -183,43 +178,36 @@ public class VncProjectionService extends Service
     }
 
     @SuppressLint("HandlerLeak")
-    private Handler mHandler = new Handler()
-    {
+    private Handler mHandler = new Handler() {
         @Override
-        public void handleMessage(Message msg)
-        {
+        public void handleMessage(Message msg) {
             Bundle bundle = msg.getData();
             switch (msg.what) {
-                case VncJni.SERVER_STARTED:
-                {
+                case VncJni.SERVER_STARTED: {
                     Log.i(TAG, bundle.getString(MESSAGE_KEY) + "\n");
                     break;
                 }
-                case VncJni.SERVER_STOPPED:
-                {
+                case VncJni.SERVER_STOPPED: {
                     /* as we might stop vnc server before receiving disconnect
                      * notifications, so clean up here, so projection can be started */
                     Log.i(TAG, bundle.getString(MESSAGE_KEY) + "\n");
                     break;
                 }
-                case VncJni.CLIENT_CONNECTED:
-                {
+                case VncJni.CLIENT_CONNECTED: {
                     startProjection();
                     String ip = bundle.getString(MESSAGE_KEY);
                     String text = "Client " + ip + " connected";
                     Log.i(TAG, text + "\n");
                     break;
                 }
-                case VncJni.CLIENT_DISCONNECTED:
-                {
+                case VncJni.CLIENT_DISCONNECTED: {
                     stopProjection();
                     String ip = bundle.getString(MESSAGE_KEY);
                     String text = "Client " + ip + " disconnected";
                     Log.i(TAG, text + "\n");
                     break;
                 }
-                default:
-                {
+                default: {
                     Log.d(TAG, "what = " + msg.what + " text = " + bundle.getString(MESSAGE_KEY));
                     break;
                 }

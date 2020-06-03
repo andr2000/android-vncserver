@@ -6,32 +6,38 @@
 #include <EGL/eglext.h>
 #include <stdint.h>
 
-class VncGraphicBuffer
-{
+class VncGraphicBuffer {
 public:
-	VncGraphicBuffer(int width, int height, uint32_t format);
-	virtual ~VncGraphicBuffer();
+    VncGraphicBuffer(int width, int height, uint32_t format);
+
+    virtual ~VncGraphicBuffer();
 
     bool allocate();
-    bool bind();
-	int lock(unsigned char **bits);
-	int unlock();
 
-	int getWidth()  { return m_Width;  }
-	int getHeight() { return m_Height; }
-	int getStride() { return m_Stride; }
+    bool bind();
+
+    int lock(unsigned char **bits);
+
+    int unlock();
+
+    int getWidth() { return mWidth; }
+
+    int getHeight() { return mHeight; }
+
+    int getStride() { return mStride; }
 
 private:
-	uint32_t m_Width;
-	uint32_t m_Height;
-	uint32_t m_Usage;
-	uint32_t m_Format;
-	uint32_t m_Stride;
-    AHardwareBuffer *m_Handle;
-	EGLImageKHR m_EGLImage;
+    uint32_t mWidth;
+    uint32_t mHeight;
+    uint32_t mUsage;
+    uint32_t mFormat;
+    uint32_t mStride;
+    AHardwareBuffer *mHandle;
+    EGLImageKHR mEGLImage;
 
-	void clearGLError();
-	bool ensureNoGLError(const char* name);
+    void clearGLError();
+
+    bool ensureNoGLError(const char *name);
 
 };
 

@@ -13,80 +13,94 @@
 #include "rfb/rfb.h"
 #include "vncgraphicbuffer.h"
 
-class VncServer
-{
+class VncServer {
 public:
-	enum UI_EVENT
-	{
-		SERVER_STARTED,
-		SERVER_STOPPED,
-		CLIENT_CONNECTED,
-		CLIENT_DISCONNECTED,
-	};
+    enum UI_EVENT {
+        SERVER_STARTED,
+        SERVER_STOPPED,
+        CLIENT_CONNECTED,
+        CLIENT_DISCONNECTED,
+    };
 
-	static VncServer &getInstance()
-	{
-		static VncServer m_Instance;
-		return m_Instance;
-	}
+    static VncServer &getInstance() {
+        static VncServer m_Instance;
+        return m_Instance;
+    }
 
-	~VncServer();
+    ~VncServer();
 
-	void setJavaVM(JavaVM *javaVM);
-	void setupNotificationClb(JNIEnv *env, jobject jObject, jclass jClass);
+    void setJavaVM(JavaVM *javaVM);
 
-	const std::string getVersion();
+    void setupNotificationClb(JNIEnv *env, jobject jObject, jclass jClass);
 
-	void postEventToUI(int what, std::string text);
+    const std::string getVersion();
 
-	int startServer(int width, int height, int pixelFormat, bool fullFrameUpdate);
-	int stopServer();
-	void bindNextProducerBuffer();
-	void frameAvailable();
-	void onRotation(int rotation);
+    void postEventToUI(int what, std::string text);
 
-	rfbNewClientAction clientHook(rfbClientPtr cl);
-	void clientGone(rfbClientPtr cl);
-	void handlePointerEvent(int buttonMask, int x, int y, rfbClientPtr cl);
-	void handleKeyEvent(rfbBool down, rfbKeySym key, rfbClientPtr cl);
+    int
+    startServer(int width, int height, int pixelFormat, bool fullFrameUpdate);
+
+    int stopServer();
+
+    void bindNextProducerBuffer();
+
+    void frameAvailable();
+
+    void onRotation(int rotation);
+
+    rfbNewClientAction clientHook(rfbClientPtr cl);
+
+    void clientGone(rfbClientPtr cl);
+
+    void handlePointerEvent(int buttonMask, int x, int y, rfbClientPtr cl);
+
+    void handleKeyEvent(rfbBool down, rfbKeySym key, rfbClientPtr cl);
 
 private:
-	static const bool DUMP_ENABLED { false };
-	const char *DESKTOP_NAME = "Android";
-	const int VNC_PORT = 5901;
-	JavaVM *m_JavaVM;
-	jobject m_Object;
-	jclass m_Class;
-	jmethodID m_NotificationClb;
+    static const bool DUMP_ENABLED{false};
+    const char *DESKTOP_NAME = "Android";
+    const int VNC_PORT = 5901;
+    JavaVM *mJavaVM;
+    jobject mObject;
+    jclass mClass;
+    jmethodID mNotificationClb;
 
-	int m_Width;
-	int m_Height;
-	int m_PixelFormat;
+    int mWidth;
+    int mHeight;
+    int mPixelFormat;
 
-	int m_Rotation;
+    int mRotation;
 
-	std::thread m_WorkerThread;
-	std::atomic<bool> m_Terminated { true };
-	std::mutex m_FrameAvailableLock;
-	bool m_FrameAvailable { false };
-	void worker();
+    std::thread mWorkerThread;
+    std::atomic<bool> mTerminated{true};
+    std::mutex mFrameAvailableLock;
+    bool mFrameAvailable{false};
 
-	VncServer();
+    void worker();
 
-	void cleanup();
+    VncServer();
 
-	VncGraphicBuffer *m_VncBuffer { nullptr };
-	VncGraphicBuffer *m_CmpBuffer { nullptr };
-	VncGraphicBuffer *m_GlBuffer { nullptr };
-	std::unique_ptr<BufferManager> m_BufferManager;
-	bool allocateBuffers(int width, int height, int pixelFormat, int fullFrameUpdate);
-	void releaseBuffers();
+    void cleanup();
 
-	rfbScreenInfoPtr m_RfbScreenInfoPtr;
-	rfbScreenInfoPtr getRfbScreenInfoPtr();
-	void setVncFramebuffer();
-	void dumpFrame(char *buffer);
-	void compare(int width, int shift, uint32_t *buffer0, uint32_t *buffer1);
+    VncGraphicBuffer *mVncBuffer{nullptr};
+    VncGraphicBuffer *mCmpBuffer{nullptr};
+    VncGraphicBuffer *mGlBuffer{nullptr};
+    std::unique_ptr<BufferManager> mBufferManager;
+
+    bool allocateBuffers(int width, int height, int pixelFormat,
+                         int fullFrameUpdate);
+
+    void releaseBuffers();
+
+    rfbScreenInfoPtr mRfbScreenInfoPtr;
+
+    rfbScreenInfoPtr getRfbScreenInfoPtr();
+
+    void setVncFramebuffer();
+
+    void dumpFrame(char *buffer);
+
+    void compare(int width, int shift, uint32_t *buffer0, uint32_t *buffer1);
 };
 
 #endif /* LIBVNCSERVER_VNCSERVER_H_ */

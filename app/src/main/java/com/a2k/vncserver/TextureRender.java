@@ -1,5 +1,11 @@
 package com.a2k.vncserver;
 
+import android.opengl.GLES11Ext;
+import android.opengl.GLES20;
+import android.opengl.GLU;
+import android.opengl.Matrix;
+import android.util.Log;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -9,12 +15,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
-
-import android.opengl.GLES11Ext;
-import android.opengl.GLES20;
-import android.opengl.GLU;
-import android.opengl.Matrix;
-import android.util.Log;
 
 class TextureRender {
     private static final String TAG = MainActivity.TAG;

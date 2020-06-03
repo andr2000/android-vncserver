@@ -7,34 +7,36 @@
 
 class VncGraphicBuffer;
 
-class BufferManager
-{
+class BufferManager {
 public:
-	enum MODE
-	{
-		TRIPLE,
-		WITH_COMPARE
-	};
-	typedef VncGraphicBuffer *VncGraphicBufferPtr;
+    enum MODE {
+        TRIPLE,
+        WITH_COMPARE
+    };
+    typedef VncGraphicBuffer *VncGraphicBufferPtr;
 
-	BufferManager() = default;
-	~BufferManager();
+    BufferManager() = default;
 
-	bool allocate(MODE mode, int width, int height, int format);
-	void release();
+    ~BufferManager();
 
-	void getConsumer(VncGraphicBufferPtr &consumer, VncGraphicBufferPtr &compare);
-	VncGraphicBuffer *getProducer();
+    bool allocate(MODE mode, int width, int height, int format);
+
+    void release();
+
+    void
+    getConsumer(VncGraphicBufferPtr &consumer, VncGraphicBufferPtr &compare);
+
+    VncGraphicBuffer *getProducer();
 
 private:
-	MODE m_Mode { WITH_COMPARE };
-	std::mutex m_Lock;
-	std::vector<std::unique_ptr<VncGraphicBuffer>> m_Buffers;
+    MODE mMode{WITH_COMPARE};
+    std::mutex mLock;
+    std::vector<std::unique_ptr<VncGraphicBuffer>> mBuffers;
 
-	int m_Consumer { 0 };
-	int m_Producer { 1 };
-	int m_Clean { 2 };
-	int m_Compare { 3 };
+    int mConsumer{0};
+    int mProducer{1};
+    int mClean{2};
+    int mCompare{3};
 };
 
 #endif /* BUFFER_MANAGER_H_ */

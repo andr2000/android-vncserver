@@ -11,46 +11,41 @@
 #include "vncgraphicbuffer.h"
 
 VncGraphicBuffer::VncGraphicBuffer(int width, int height,
-	uint32_t format) :
-	m_Width(width), m_Height(height),
-	m_Usage(AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN),
-	m_Format(format),
-	m_Handle(nullptr),
-	m_EGLImage(nullptr)
-{
+                                   uint32_t format) :
+        mWidth(width), mHeight(height),
+        mUsage(AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN),
+        mFormat(format),
+        mHandle(nullptr),
+        mEGLImage(nullptr) {
 }
 
-VncGraphicBuffer::~VncGraphicBuffer()
-{
-    if (m_Handle)
-        AHardwareBuffer_release(m_Handle);
+VncGraphicBuffer::~VncGraphicBuffer() {
+    if (mHandle)
+        AHardwareBuffer_release(mHandle);
 }
 
-int VncGraphicBuffer::lock(unsigned char **bits)
-{
-    return AHardwareBuffer_lock(m_Handle, m_Usage, -1, nullptr,
+int VncGraphicBuffer::lock(unsigned char **bits) {
+    return AHardwareBuffer_lock(mHandle, mUsage, -1, nullptr,
                                 reinterpret_cast<void **>(bits));
 }
 
-int VncGraphicBuffer::unlock()
-{
-    return AHardwareBuffer_unlock(m_Handle, nullptr);
+int VncGraphicBuffer::unlock() {
+    return AHardwareBuffer_unlock(mHandle, nullptr);
 }
 
-bool VncGraphicBuffer::allocate()
-{
+bool VncGraphicBuffer::allocate() {
     AHardwareBuffer_Desc desc;
 
     memset(&desc, 0, sizeof(desc));
-    desc.width = m_Width;
-    desc.height = m_Height;
-    desc.format = m_Format;
-    desc.usage = m_Usage | AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
+    desc.width = mWidth;
+    desc.height = mHeight;
+    desc.format = mFormat;
+    desc.usage = mUsage | AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
     desc.layers = 1;
-    if (AHardwareBuffer_allocate(&desc, &m_Handle) != 0)
+    if (AHardwareBuffer_allocate(&desc, &mHandle) != 0)
         return false;
-    AHardwareBuffer_describe(m_Handle, &desc);
-    m_Stride = desc.stride;
+    AHardwareBuffer_describe(mHandle, &desc);
+    mStride = desc.stride;
 
     EGLint eglImgAttrs[] = {
             EGL_IMAGE_PRESERVED_KHR,
@@ -59,37 +54,36 @@ bool VncGraphicBuffer::allocate()
             EGL_NONE
     };
 
-    EGLClientBuffer nativeBuffer = eglGetNativeClientBufferANDROID(m_Handle);
-    m_EGLImage = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
-            EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID,
-            nativeBuffer, eglImgAttrs);
-    if (m_EGLImage) {
-        LOGD("Allocated graphic buffer (%dx%d), format %s, stride %d", m_Width, m_Height,
-             m_Format == AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM ? "RGB565" : "RGBA", m_Stride);
+    EGLClientBuffer nativeBuffer = eglGetNativeClientBufferANDROID(mHandle);
+    mEGLImage = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
+                                  EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID,
+                                  nativeBuffer, eglImgAttrs);
+    if (mEGLImage) {
+        LOGD("Allocated graphic buffer (%dx%d), format %s, stride %d", mWidth,
+             mHeight,
+             mFormat == AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM ? "RGB565"
+                                                            : "RGBA",
+             mStride);
     }
-    return m_EGLImage != nullptr;
+    return mEGLImage != nullptr;
 
 }
 
-bool VncGraphicBuffer::bind()
-{
+bool VncGraphicBuffer::bind() {
     clearGLError();
-    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, m_EGLImage);
+    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, mEGLImage);
     return ensureNoGLError("glEGLImageTargetTexture2DOES");
 }
 
-void VncGraphicBuffer::clearGLError()
-{
+void VncGraphicBuffer::clearGLError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
-bool VncGraphicBuffer::ensureNoGLError(const char* name)
-{
+bool VncGraphicBuffer::ensureNoGLError(const char *name) {
     bool result = true;
     GLuint error;
 
-    while ((error = glGetError()) != GL_NO_ERROR)
-    {
+    while ((error = glGetError()) != GL_NO_ERROR) {
         LOGE("GL error [%s]: %40x\n", name, error);
         result = false;
     }
