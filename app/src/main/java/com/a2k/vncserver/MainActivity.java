@@ -58,21 +58,13 @@ public class MainActivity extends AppCompatActivity {
         startService(intent);
     }
 
-    private void startProjectionService() {
-        startActivityForResult(
-                mMediaProjectionManager.createScreenCaptureIntent(),
-                PERMISSION_CODE);
-    }
-
-    private void stopProjectionService() {
-        stopService(new Intent(this, VncProjectionService.class));
-    }
-
     public void onToggleScreenShare(View view) {
         if (((ToggleButton) view).isChecked()) {
-            startProjectionService();
+            startActivityForResult(
+                    mMediaProjectionManager.createScreenCaptureIntent(),
+                    PERMISSION_CODE);
         } else {
-            stopProjectionService();
+            stopService(new Intent(this, VncProjectionService.class));
         }
     }
 }

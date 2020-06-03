@@ -29,9 +29,10 @@ public class VncProjectionService extends Service
         implements SurfaceTexture.OnFrameAvailableListener,
         VncJni.NotificationListener {
     public static final String TAG = MainActivity.TAG;
-    public static final String PROJECTION_RESULT_KEY = "projection_result";
+
     public static final String PROJECTION_RESULT_CODE = "projection_result_code";
     public static final String PROJECTION_RESULT_DATA = "projection_result_data";
+
     private static final int NOTIFICATION_ID = 12345678;
     private static final String CHANNEL_ID = "channel_01";
     private static final String MESSAGE_KEY = "text";
@@ -51,7 +52,7 @@ public class VncProjectionService extends Service
     private TextureRender mTextureRender;
     private SurfaceTexture mSurfaceTexture;
 
-    private VncJni mVncJni = null;
+    private VncJni mVncJni;
 
     public VncProjectionService() {
     }
@@ -93,14 +94,13 @@ public class VncProjectionService extends Service
 
     @Override
     public void onDestroy() {
-        mVncJni.stopServer();
         stopProjection();
+        mVncJni.stopServer();
         super.onDestroy();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        /* FIXME: called twice */
         if (mProjectionResultData == null) {
             mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE, 0);
             mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
@@ -197,13 +197,8 @@ public class VncProjectionService extends Service
         public void handleMessage(Message msg) {
             Bundle bundle = msg.getData();
             switch (msg.what) {
-                case VncJni.SERVER_STARTED: {
-                    Log.i(TAG, bundle.getString(MESSAGE_KEY) + "\n");
-                    break;
-                }
+                case VncJni.SERVER_STARTED:
                 case VncJni.SERVER_STOPPED: {
-                    /* as we might stop vnc server before receiving disconnect
-                     * notifications, so clean up here, so projection can be started */
                     Log.i(TAG, bundle.getString(MESSAGE_KEY) + "\n");
                     break;
                 }
@@ -222,7 +217,8 @@ public class VncProjectionService extends Service
                     break;
                 }
                 default: {
-                    Log.d(TAG, "what = " + msg.what + " text = " + bundle.getString(MESSAGE_KEY));
+                    Log.d(TAG, "what = " + msg.what + " text = " +
+                            bundle.getString(MESSAGE_KEY));
                     break;
                 }
             }
