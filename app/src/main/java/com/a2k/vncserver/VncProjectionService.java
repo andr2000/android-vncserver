@@ -116,7 +116,9 @@ public class VncProjectionService extends Service
         Display display = wm.getDefaultDisplay();
         Point realSize = new Point();
         display.getRealSize(realSize);
-        return (int)((mDisplayHeight - (float)mDisplayWidth / realSize.x * realSize.y) / 2);
+        int offset = (int)((mDisplayHeight - (float)mDisplayWidth / realSize.x * realSize.y) / 2);
+        /* Evaluates to negative in portrait mode and we don't need it */
+        return offset > 0 ? offset : 0;
     }
 
     private void startProjection() {
