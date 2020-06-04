@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
@@ -20,6 +21,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Parcelable;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -46,6 +48,7 @@ public class VncProjectionService extends Service
     /* Heigt of the black rectangles on top/bottom in landscape mode */
     private double mHeightOffsetLandscape = -1.0;
     private int mCurrentRotation;
+    private int mBrightness;
 
     private int mProjectionResultCode;
     private Parcelable mProjectionResultData;
@@ -232,6 +235,8 @@ public class VncProjectionService extends Service
                     String ip = bundle.getString(MESSAGE_KEY);
                     String text = "Client " + ip + " connected";
                     Log.i(TAG, text + "\n");
+                    mBrightness = getBrightness();
+                    setBrightness(0);
                     break;
                 }
                 case VncJni.CLIENT_DISCONNECTED: {
@@ -239,6 +244,7 @@ public class VncProjectionService extends Service
                     String ip = bundle.getString(MESSAGE_KEY);
                     String text = "Client " + ip + " disconnected";
                     Log.i(TAG, text + "\n");
+                    setBrightness(mBrightness);
                     break;
                 }
                 default: {
@@ -265,6 +271,27 @@ public class VncProjectionService extends Service
 
     public void onScreenRotation(int rotation) {
         handleRotationChange(rotation);
+    }
+
+    private void setBrightness(int brightness) {
+        if (Settings.System.canWrite(getApplicationContext())) {
+            ContentResolver cResolver = this.getApplicationContext().getContentResolver();
+            Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
+        }
+    }
+
+    private int getBrightness() {
+        int brightness = 512;
+
+        if (Settings.System.canWrite(getApplicationContext())) {
+            ContentResolver cResolver = this.getApplicationContext().getContentResolver();
+            try {
+                brightness =  Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS);
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        return brightness;
     }
 
     @Override
