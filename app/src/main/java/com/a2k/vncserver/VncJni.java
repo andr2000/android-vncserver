@@ -8,8 +8,10 @@ public class VncJni {
 
     private NotificationListener mListener;
 
-    public static interface NotificationListener {
-        public void onNotification(int what, String message);
+    public interface NotificationListener {
+        void onNotification(int what, String message);
+        void onNotificationTouch(int buttonMask, int x, int y);
+        void onNotificationKbd(int down, int key);
     }
 
     public void setNotificationListener(NotificationListener listener) {
@@ -19,6 +21,18 @@ public class VncJni {
     public void onNotification(int what, String message) {
         if (mListener != null) {
             mListener.onNotification(what, message);
+        }
+    }
+
+    public void onNotificationTouch(int buttonMask, int x, int y) {
+        if (mListener != null) {
+            mListener.onNotificationTouch(buttonMask, x, y);
+        }
+    }
+
+    public void onNotificationKbd(int down, int key) {
+        if (mListener != null) {
+            mListener.onNotificationKbd(down, key);
         }
     }
 

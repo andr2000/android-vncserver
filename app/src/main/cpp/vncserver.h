@@ -36,8 +36,10 @@ public:
     const std::string getVersion();
 
     void postEventToUI(int what, std::string text);
+    void postTouchEventToUI(int buttonMask, int x, int y);
+    void postKbdEventToUI(rfbBool down, rfbKeySym key);
 
-    int
+        int
     startServer(int width, int height, int pixelFormat, bool fullFrameUpdate);
 
     int stopServer();
@@ -62,6 +64,8 @@ private:
     jobject mObject;
     jclass mClass;
     jmethodID mNotificationClb;
+    jmethodID mNotificationTouchClb;
+    jmethodID mNotificationKbdClb;
 
     int mWidth;
     int mHeight;

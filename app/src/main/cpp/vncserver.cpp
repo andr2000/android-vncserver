@@ -38,6 +38,11 @@ VncServer::setupNotificationClb(JNIEnv *env, jobject jObject, jclass jClass) {
     if (!mNotificationClb) {
         LOGE("Failed to get method ID for onNotification");
     }
+    mNotificationTouchClb = env->GetMethodID(mClass, "onNotificationTouch",
+                                             "(III)V");
+
+    mNotificationKbdClb = env->GetMethodID(mClass, "onNotificationKbd",
+                                             "(II)V");
 }
 
 const std::string VncServer::getVersion() {
@@ -177,15 +182,47 @@ void handlePointerEventClb(int buttonMask, int x, int y, rfbClientPtr cl) {
     VncServer::getInstance().handlePointerEvent(buttonMask, x, y, cl);
 }
 
+void VncServer::postTouchEventToUI(int buttonMask, int x, int y) {
+    if (mNotificationTouchClb) {
+        JNIEnv *env;
+        mJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
+        mJavaVM->AttachCurrentThread(&env, 0);
+        jvalue jpar[3];
+        jpar[0].i = buttonMask;
+        jpar[1].i = x;
+        jpar[2].i = y;
+        env->CallVoidMethodA(mObject, mNotificationTouchClb, jpar);
+    } else {
+        LOGE("onNotificationTouch method ID was not set");
+    }
+}
+
 void
 VncServer::handlePointerEvent(int buttonMask, int x, int y, rfbClientPtr cl) {
+    postTouchEventToUI(buttonMask, x, y);
 }
+
 
 void handleKeyEventClb(rfbBool down, rfbKeySym key, rfbClientPtr cl) {
     VncServer::getInstance().handleKeyEvent(down, key, cl);
 }
 
+void VncServer::postKbdEventToUI(rfbBool down, rfbKeySym key) {
+    if (mNotificationKbdClb) {
+        JNIEnv *env;
+        mJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
+        mJavaVM->AttachCurrentThread(&env, 0);
+        jvalue jpar[2];
+        jpar[0].i = down;
+        jpar[1].i = key;
+        env->CallVoidMethodA(mObject, mNotificationKbdClb, jpar);
+    } else {
+        LOGE("onNotificationKbd method ID was not set");
+    }
+}
+
 void VncServer::handleKeyEvent(rfbBool down, rfbKeySym key, rfbClientPtr cl) {
+    postKbdEventToUI(down, key);
 }
 
 void rfbDefaultLog(const char *format, ...) {

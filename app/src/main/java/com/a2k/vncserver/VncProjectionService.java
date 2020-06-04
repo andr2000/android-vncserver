@@ -208,6 +208,14 @@ public class VncProjectionService extends Service
         mHandler.sendMessage(msg);
     }
 
+    @Override
+    public void onNotificationTouch(int buttonMask, int x, int y) {
+    }
+
+    @Override
+    public void onNotificationKbd(int down, int key) {
+    }
+
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler() {
         @Override
