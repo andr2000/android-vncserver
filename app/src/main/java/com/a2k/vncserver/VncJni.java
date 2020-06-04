@@ -1,12 +1,16 @@
 package com.a2k.vncserver;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class VncJni {
     public static final int SERVER_STARTED = 0;
     public static final int SERVER_STOPPED = 1;
     public static final int CLIENT_CONNECTED = 2;
     public static final int CLIENT_DISCONNECTED = 3;
 
-    private NotificationListener mListener;
+    private List<NotificationListener> mListener =
+            new ArrayList<>();
 
     public interface NotificationListener {
         void onNotification(int what, String message);
@@ -14,25 +18,29 @@ public class VncJni {
         void onNotificationKbd(int down, int key);
     }
 
-    public void setNotificationListener(NotificationListener listener) {
-        mListener = listener;
+    public synchronized void setNotificationListener(NotificationListener listener) {
+        mListener.add(listener);
     }
 
-    public void onNotification(int what, String message) {
-        if (mListener != null) {
-            mListener.onNotification(what, message);
+    public synchronized void removeNotificationListeners() {
+        mListener.clear();
+    }
+
+    public synchronized void onNotification(int what, String message) {
+        for (int i = 0; i < mListener.size(); i++) {
+            mListener.get(i).onNotification(what, message);
         }
     }
 
-    public void onNotificationTouch(int buttonMask, int x, int y) {
-        if (mListener != null) {
-            mListener.onNotificationTouch(buttonMask, x, y);
+    public synchronized void onNotificationTouch(int buttonMask, int x, int y) {
+        for (int i = 0; i < mListener.size(); i++) {
+            mListener.get(i).onNotificationTouch(buttonMask, x, y);
         }
     }
 
-    public void onNotificationKbd(int down, int key) {
-        if (mListener != null) {
-            mListener.onNotificationKbd(down, key);
+    public synchronized void onNotificationKbd(int down, int key) {
+        for (int i = 0; i < mListener.size(); i++) {
+            mListener.get(i).onNotificationKbd(down, key);
         }
     }
 

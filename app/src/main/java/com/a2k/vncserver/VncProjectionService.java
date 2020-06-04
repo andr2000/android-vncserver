@@ -106,6 +106,7 @@ public class VncProjectionService extends Service
     public void onDestroy() {
         stopProjection();
         mVncJni.stopServer();
+        mVncJni.removeNotificationListeners();
         super.onDestroy();
     }
 
