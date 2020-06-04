@@ -174,6 +174,7 @@ rfbNewClientAction VncServer::clientHook(rfbClientPtr cl) {
 }
 
 void handlePointerEventClb(int buttonMask, int x, int y, rfbClientPtr cl) {
+    VncServer::getInstance().handlePointerEvent(buttonMask, x, y, cl);
 }
 
 void
@@ -181,6 +182,7 @@ VncServer::handlePointerEvent(int buttonMask, int x, int y, rfbClientPtr cl) {
 }
 
 void handleKeyEventClb(rfbBool down, rfbKeySym key, rfbClientPtr cl) {
+    VncServer::getInstance().handleKeyEvent(down, key, cl);
 }
 
 void VncServer::handleKeyEvent(rfbBool down, rfbKeySym key, rfbClientPtr cl) {
@@ -232,6 +234,9 @@ int VncServer::startServer(int width, int height, int pixelFormat,
     rfbLog = rfbDefaultLog;
     rfbErr = rfbDefaultLog;
     rfbInitServer(mRfbScreenInfoPtr);
+
+    mRfbScreenInfoPtr->kbdAddEvent = handleKeyEventClb;
+    mRfbScreenInfoPtr->ptrAddEvent = handlePointerEventClb;
 
     mTerminated = false;
     mWorkerThread = std::thread(&VncServer::worker, this);
