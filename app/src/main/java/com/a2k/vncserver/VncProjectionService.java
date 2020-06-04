@@ -43,6 +43,9 @@ public class VncProjectionService extends Service
     private int mDisplayWidth = 800;
     private int mDisplayHeight = 480;
     private int mPixelFormat = GLES20.GL_RGB565;
+    /* Heigt of the black rectangles on top/bottom in landscape mode */
+    private double mHeightOffsetLandscape = -1.0;
+    private int mCurrentRotation;
 
     private int mProjectionResultCode;
     private Parcelable mProjectionResultData;
@@ -93,6 +96,7 @@ public class VncProjectionService extends Service
         Log.d(TAG, mVncJni.protoGetVersion());
         mVncJni.startServer(mDisplayWidth, mDisplayHeight,
                 mPixelFormat, false);
+        calcHeightOffsetLandscape();
     }
 
     @Override
@@ -107,17 +111,29 @@ public class VncProjectionService extends Service
         return START_NOT_STICKY;
     }
 
-    private int getHeightOffset() {
-        /* HACK: This is used to remove black edges in landscape mode via scaling
-         * the image to fit the virtual display's size
+    private void calcHeightOffsetLandscape() {
+        /*
+         * This is used to remove black edges in landscape mode via scaling
+         * the image to fit the virtual display's size.
+         * Calculations depend on current screen rotation, e.g. currently
+         * in landscape or portrait mode, but in portrait mode we do not
+         * want any scaling, but in landscape only.
          */
         WindowManager wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         Point realSize = new Point();
         display.getRealSize(realSize);
-        int offset = (int)((mDisplayHeight - (float)mDisplayWidth / realSize.x * realSize.y) / 2);
-        /* Evaluates to negative in portrait mode and we don't need it */
-        return offset > 0 ? offset : 0;
+
+        int x, y;
+        if (realSize.x > realSize.y) {
+            x = realSize.x;
+            y = realSize.y;
+        } else {
+            x = realSize.y;
+            y = realSize.x;
+        }
+        /* Evaluates to negative in portrait mode */
+        mHeightOffsetLandscape =  ((double)y / x * mDisplayHeight) / 2.0f;
     }
 
     private void startProjection() {
@@ -127,7 +143,7 @@ public class VncProjectionService extends Service
         if (mSurface == null) {
             mTextureRender = new TextureRender(mVncJni,
                     mDisplayWidth, mDisplayHeight, mPixelFormat);
-            mTextureRender.setHeightOffset(getHeightOffset());
+            handleRotationChange(mCurrentRotation);
             mTextureRender.start();
             mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
             mSurfaceTexture.setDefaultBufferSize(mDisplayWidth, mDisplayHeight);
@@ -226,9 +242,21 @@ public class VncProjectionService extends Service
         }
     };
 
+    private void handleRotationChange(int rotation) {
+        mCurrentRotation = rotation;
+
+        if (mTextureRender == null)
+            return;
+
+        if (rotation == Surface.ROTATION_0 ||
+                rotation == Surface.ROTATION_180)
+            mTextureRender.setHeightOffset(-1.0);
+        else
+            mTextureRender.setHeightOffset(mHeightOffsetLandscape);
+    }
+
     public void onScreenRotation(int rotation) {
-        if (mTextureRender != null)
-            mTextureRender.setHeightOffset(getHeightOffset());
+        handleRotationChange(rotation);
     }
 
     @Override

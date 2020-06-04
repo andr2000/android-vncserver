@@ -22,12 +22,6 @@ class TextureRender {
     private int mWidth;
     private int mHeight;
 
-    public void setHeightOffset(int mHeightOffset) {
-        this.mHeightOffset = mHeightOffset;
-    }
-
-    private int mHeightOffset;
-
     private EGL10 mEgl;
     private EGLDisplay mEglDisplay;
     private EGLContext mEglContext;
@@ -53,9 +47,10 @@ class TextureRender {
             1.0f, 1.0f, 0, 1.f, 1.f,
     };
 
+    /* Scale transform matrix */
     private final float[] mSTMatrix = {
             1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, .0f,
             0.0f, 0.0f, 1.0f, 0.0f,
             0.0f, 0.0f, 0.0f, 1.0f
     };
@@ -135,9 +130,32 @@ class TextureRender {
                 mTriangleVerticesData.length * FLOAT_SIZE_BYTES)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
         mTriangleVertices.put(mTriangleVerticesData).position(0);
-        setHeightOffset(0);
+        setHeightOffset(-1.0);
+    }
 
-        Matrix.setIdentityM(mSTMatrix, 0);
+    private void setSTMatrixYScale(float yScale) {
+        mSTMatrix[1*4 + 1] = yScale;
+    }
+
+    private void setSTMatrixYPos(float yPosition) {
+        mSTMatrix[3*4 + 1] = yPosition;
+    }
+
+    public void setHeightOffset(double mHeightOffset) {
+        /* Fix black top and bottom edges due to different aspect ratios
+         * of the physical display and the virtual one (landscape mode):
+         * scale the picture to fit the screen by Y and move it up by Y
+         */
+        if (mHeightOffset < 0) {
+            /* No scaling in portrait mode */
+            setSTMatrixYScale(1.0f);
+            setSTMatrixYPos(0.0f);
+        } else {
+            /* Landscape needs top and bottom to be removed */
+            setSTMatrixYScale((float)(1.0f - mHeightOffset / mHeight));
+            /* Shift up by mHeightOffset pixels */
+            setSTMatrixYPos((float)(mHeightOffset / mHeight / 2.0f));
+        }
     }
 
     public int getTextureId() {
@@ -157,7 +175,7 @@ class TextureRender {
     private void draw() {
         checkGlError("onDrawFrame start");
 
-        GLES20.glViewport(0, -mHeightOffset, mWidth, mHeight + mHeightOffset * 2);
+        GLES20.glViewport(0, 0, mWidth, mHeight);
         GLES20.glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 

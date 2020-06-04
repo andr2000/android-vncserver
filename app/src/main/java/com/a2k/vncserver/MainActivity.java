@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     private VncProjectionService mVncProjectionService;
 
-    private int mCurrentRotation = -1;
+    private int mCurrentRotation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,16 +81,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
+    private void handleRotationChange() {
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
+
         if (rotation == mCurrentRotation)
             return;
         if (mVncProjectionService != null)
             mVncProjectionService.onScreenRotation(rotation);
         mCurrentRotation = rotation;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        handleRotationChange();
     }
 
     private ServiceConnection mVncConnection = new ServiceConnection()
@@ -101,6 +105,9 @@ public class MainActivity extends AppCompatActivity {
             VncProjectionService.VncProjectionServiceBinder binder =
                     (VncProjectionService.VncProjectionServiceBinder)service;
             mVncProjectionService = binder.getService();
+            /* Set initial rotation angle */
+            mCurrentRotation = -1;
+            handleRotationChange();
         }
 
         @Override
