@@ -250,10 +250,6 @@ void VncServer::frameAvailable() {
     mFrameAvailable = true;
 }
 
-void VncServer::onRotation(int rotation) {
-    mRotation = rotation;
-}
-
 void VncServer::dumpFrame(char *buffer) {
     const char *fName = "/sdcard/framebuffer.data";
     FILE *f = fopen(fName, "w+b");

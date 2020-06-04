@@ -46,8 +46,6 @@ public:
 
     void frameAvailable();
 
-    void onRotation(int rotation);
-
     rfbNewClientAction clientHook(rfbClientPtr cl);
 
     void clientGone(rfbClientPtr cl);
@@ -68,8 +66,6 @@ private:
     int mWidth;
     int mHeight;
     int mPixelFormat;
-
-    int mRotation;
 
     std::thread mWorkerThread;
     std::atomic<bool> mTerminated{true};

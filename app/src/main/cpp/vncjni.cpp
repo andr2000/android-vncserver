@@ -55,10 +55,4 @@ JNIEXPORT jint JNICALL
 Java_com_a2k_vncserver_VncJni_stopServer(JNIEnv *env, jobject obj) {
     return VncServer::getInstance().stopServer();
 }
-
-JNIEXPORT void JNICALL
-Java_com_a2k_vncserver_VncJni_onRotation(JNIEnv *env, jobject obj,
-                                         jint rotation) {
-    VncServer::getInstance().onRotation(rotation);
-}
 }
