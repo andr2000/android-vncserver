@@ -36,6 +36,7 @@ public class VncProjectionService extends Service
     public static final String PROJECTION_RESULT_CODE = "projection_result_code";
     public static final String PROJECTION_RESULT_DATA = "projection_result_data";
     public static final String PROJECTION_DIM_BRIGHTNESS = "projection_dim_brightness";
+    public static final String PROJECTION_ROTATE_LANDSCAPE = "projection_rotate_landscape";
 
     private static final int NOTIFICATION_ID = 12345678;
     private static final String CHANNEL_ID = "channel_01";
@@ -50,7 +51,9 @@ public class VncProjectionService extends Service
     private double mHeightOffsetLandscape = -1.0;
     private int mCurrentRotation;
     private int mBrightness;
-    private boolean mDimBrightness = true;
+    private boolean mDimBrightness;
+    private int mScreenOrientation;
+    private boolean mRotateToLandscape;
 
     private int mProjectionResultCode;
     private Parcelable mProjectionResultData;
@@ -241,6 +244,10 @@ public class VncProjectionService extends Service
                         mBrightness = getBrightness();
                         setBrightness(0);
                     }
+                    if (mRotateToLandscape) {
+                        mScreenOrientation = getOrientation();
+                        setOrientation(Surface.ROTATION_90);
+                    }
                     break;
                 }
                 case VncJni.CLIENT_DISCONNECTED: {
@@ -250,6 +257,9 @@ public class VncProjectionService extends Service
                     Log.i(TAG, text + "\n");
                     if (mDimBrightness) {
                         setBrightness(mBrightness);
+                    }
+                    if (mRotateToLandscape) {
+                        setOrientation(mScreenOrientation);
                     }
                     break;
                 }
@@ -282,22 +292,29 @@ public class VncProjectionService extends Service
     private void setBrightness(int brightness) {
         if (Settings.System.canWrite(getApplicationContext())) {
             ContentResolver cResolver = this.getApplicationContext().getContentResolver();
-            Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
+            Settings.System.putInt(cResolver,
+                    Settings.System.SCREEN_BRIGHTNESS, brightness);
         }
     }
 
     private int getBrightness() {
-        int brightness = 512;
+        ContentResolver cResolver = this.getApplicationContext().getContentResolver();
+        return Settings.System.getInt(cResolver,
+                Settings.System.SCREEN_BRIGHTNESS, 512);
+    }
 
+    private void setOrientation(int orientation) {
         if (Settings.System.canWrite(getApplicationContext())) {
             ContentResolver cResolver = this.getApplicationContext().getContentResolver();
-            try {
-                brightness =  Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS);
-            } catch (Settings.SettingNotFoundException e) {
-                e.printStackTrace();
-            }
+            Settings.System.putInt(cResolver, Settings.System.USER_ROTATION,
+                    orientation);
         }
-        return brightness;
+    }
+
+    private int getOrientation() {
+        ContentResolver cResolver = this.getApplicationContext().getContentResolver();
+        return Settings.System.getInt(cResolver, Settings.System.USER_ROTATION,
+                Surface.ROTATION_0);
     }
 
     @Override
@@ -305,6 +322,7 @@ public class VncProjectionService extends Service
         mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE, 0);
         mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
         mDimBrightness = intent.getBooleanExtra(PROJECTION_DIM_BRIGHTNESS, true);
+        mRotateToLandscape = intent.getBooleanExtra(PROJECTION_ROTATE_LANDSCAPE, true);
         return mBinder;
     }
 

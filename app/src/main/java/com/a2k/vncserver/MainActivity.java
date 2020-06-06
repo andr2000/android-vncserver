@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements
     private int mCurrentRotation;
 
     private boolean mDimBrightness;
+    private boolean mRotateLandscape;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +84,8 @@ public class MainActivity extends AppCompatActivity implements
         intent.putExtra(VncProjectionService.PROJECTION_RESULT_DATA, data);
         intent.putExtra(VncProjectionService.PROJECTION_DIM_BRIGHTNESS,
                 mDimBrightness);
+        intent.putExtra(VncProjectionService.PROJECTION_ROTATE_LANDSCAPE,
+                mRotateLandscape);
         bindService(intent, mVncConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -140,18 +143,27 @@ public class MainActivity extends AppCompatActivity implements
                 SettingsActivity.CLIENT_BRIGHTESS_KEY,true);
     }
 
+    private void getPreferenceLandscape(SharedPreferences sharedPreferences) {
+        mRotateLandscape = sharedPreferences.getBoolean(
+                SettingsActivity.CLIENT_LANDSCAPE_KEY,true);
+    }
+
     private void setupSharedPreferences() {
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
         getPreferenceBrightness(sharedPreferences);
+        getPreferenceLandscape(sharedPreferences);
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.endsWith(SettingsActivity.CLIENT_BRIGHTESS_KEY)) {
             getPreferenceBrightness(sharedPreferences);
+        }
+        if (key.endsWith(SettingsActivity.CLIENT_LANDSCAPE_KEY)) {
+            getPreferenceLandscape(sharedPreferences);
         }
     }
 
