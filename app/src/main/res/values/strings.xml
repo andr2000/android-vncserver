@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">VncServer</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <string name="client_header">Client connection</string>
+
+    <string name="client_brightness">Dim brightness</string>
+    <string name="action_settings">Settings</string>
 </resources>
