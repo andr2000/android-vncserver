@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements
                 VncProjectionService.class);
         intent.putExtra(VncProjectionService.PROJECTION_RESULT_CODE, resultCode);
         intent.putExtra(VncProjectionService.PROJECTION_RESULT_DATA, data);
+        intent.putExtra(VncProjectionService.PROJECTION_DIM_BRIGHTNESS,
+                mDimBrightness);
         bindService(intent, mVncConnection, Context.BIND_AUTO_CREATE);
     }
 

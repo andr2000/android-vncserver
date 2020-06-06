@@ -35,6 +35,7 @@ public class VncProjectionService extends Service
 
     public static final String PROJECTION_RESULT_CODE = "projection_result_code";
     public static final String PROJECTION_RESULT_DATA = "projection_result_data";
+    public static final String PROJECTION_DIM_BRIGHTNESS = "projection_dim_brightness";
 
     private static final int NOTIFICATION_ID = 12345678;
     private static final String CHANNEL_ID = "channel_01";
@@ -49,6 +50,7 @@ public class VncProjectionService extends Service
     private double mHeightOffsetLandscape = -1.0;
     private int mCurrentRotation;
     private int mBrightness;
+    private boolean mDimBrightness = true;
 
     private int mProjectionResultCode;
     private Parcelable mProjectionResultData;
@@ -235,8 +237,10 @@ public class VncProjectionService extends Service
                     String ip = bundle.getString(MESSAGE_KEY);
                     String text = "Client " + ip + " connected";
                     Log.i(TAG, text + "\n");
-                    mBrightness = getBrightness();
-                    setBrightness(0);
+                    if (mDimBrightness) {
+                        mBrightness = getBrightness();
+                        setBrightness(0);
+                    }
                     break;
                 }
                 case VncJni.CLIENT_DISCONNECTED: {
@@ -244,7 +248,9 @@ public class VncProjectionService extends Service
                     String ip = bundle.getString(MESSAGE_KEY);
                     String text = "Client " + ip + " disconnected";
                     Log.i(TAG, text + "\n");
-                    setBrightness(mBrightness);
+                    if (mDimBrightness) {
+                        setBrightness(mBrightness);
+                    }
                     break;
                 }
                 default: {
@@ -298,6 +304,7 @@ public class VncProjectionService extends Service
     public IBinder onBind(Intent intent) {
         mProjectionResultCode = intent.getIntExtra(PROJECTION_RESULT_CODE, 0);
         mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
+        mDimBrightness = intent.getBooleanExtra(PROJECTION_DIM_BRIGHTNESS, true);
         return mBinder;
     }
 
