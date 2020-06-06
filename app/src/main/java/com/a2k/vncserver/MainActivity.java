@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private boolean mDimBrightness;
     private boolean mRotateLandscape;
+    private boolean mFullScreenUpdates;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements
                 mDimBrightness);
         intent.putExtra(VncProjectionService.PROJECTION_ROTATE_LANDSCAPE,
                 mRotateLandscape);
+        intent.putExtra(VncProjectionService.PROJECTION_FULL_SCREEN_UPDATES,
+                mFullScreenUpdates);
         bindService(intent, mVncConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -148,6 +151,11 @@ public class MainActivity extends AppCompatActivity implements
                 SettingsActivity.CLIENT_LANDSCAPE_KEY,true);
     }
 
+    private void getPreferenceFullScreenUpdate(SharedPreferences sharedPreferences) {
+        mFullScreenUpdates = sharedPreferences.getBoolean(
+                SettingsActivity.CLIENT_FULL_SCREEN_UPDATES_KEY,false);
+    }
+
     private void setupSharedPreferences() {
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this);
@@ -155,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements
 
         getPreferenceBrightness(sharedPreferences);
         getPreferenceLandscape(sharedPreferences);
+        getPreferenceFullScreenUpdate(sharedPreferences);
     }
 
     @Override
@@ -164,6 +173,9 @@ public class MainActivity extends AppCompatActivity implements
         }
         if (key.endsWith(SettingsActivity.CLIENT_LANDSCAPE_KEY)) {
             getPreferenceLandscape(sharedPreferences);
+        }
+        if (key.endsWith(SettingsActivity.CLIENT_FULL_SCREEN_UPDATES_KEY)) {
+            getPreferenceFullScreenUpdate(sharedPreferences);
         }
     }
 

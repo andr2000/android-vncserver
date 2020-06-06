@@ -9,6 +9,7 @@ import androidx.preference.PreferenceFragmentCompat;
 public class SettingsActivity extends AppCompatActivity {
     public static final String CLIENT_BRIGHTESS_KEY = "client_brightness";
     public static final String CLIENT_LANDSCAPE_KEY = "client_landscape";
+    public static final String CLIENT_FULL_SCREEN_UPDATES_KEY = "client_full_screen_updates";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -37,6 +37,7 @@ public class VncProjectionService extends Service
     public static final String PROJECTION_RESULT_DATA = "projection_result_data";
     public static final String PROJECTION_DIM_BRIGHTNESS = "projection_dim_brightness";
     public static final String PROJECTION_ROTATE_LANDSCAPE = "projection_rotate_landscape";
+    public static final String PROJECTION_FULL_SCREEN_UPDATES = "projection_full_screen_updates";
 
     private static final int NOTIFICATION_ID = 12345678;
     private static final String CHANNEL_ID = "channel_01";
@@ -65,6 +66,8 @@ public class VncProjectionService extends Service
     private Surface mSurface;
     private TextureRender mTextureRender;
     private SurfaceTexture mSurfaceTexture;
+
+    private boolean mBound = false;
 
     private VncJni mVncJni = VncJni.getInstance();
 
@@ -101,8 +104,6 @@ public class VncProjectionService extends Service
         mVncJni.setNotificationListener(VncProjectionService.this);
         mVncJni.init();
         Log.d(TAG, mVncJni.protoGetVersion());
-        mVncJni.startServer(mDisplayWidth, mDisplayHeight,
-                mPixelFormat, false);
         calcHeightOffsetLandscape();
     }
 
@@ -323,6 +324,15 @@ public class VncProjectionService extends Service
         mProjectionResultData = intent.getParcelableExtra(PROJECTION_RESULT_DATA);
         mDimBrightness = intent.getBooleanExtra(PROJECTION_DIM_BRIGHTNESS, true);
         mRotateToLandscape = intent.getBooleanExtra(PROJECTION_ROTATE_LANDSCAPE, true);
+        boolean fullScreenUpdates = intent.getBooleanExtra(PROJECTION_FULL_SCREEN_UPDATES, false);
+        if (!mBound) {
+            /* We need mFullScreenUpdates parameter, so we don't start
+             * the server on onCreate
+             */
+            mVncJni.startServer(mDisplayWidth, mDisplayHeight,
+                    mPixelFormat, fullScreenUpdates);
+            mBound = true;
+        }
         return mBinder;
     }
 
