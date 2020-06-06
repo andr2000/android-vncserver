@@ -18,6 +18,14 @@ public class VncJni {
         void onNotificationKbd(int down, int key);
     }
 
+    private static final VncJni mInstance = new VncJni();
+
+    private VncJni() {}
+
+    public static VncJni getInstance(){
+        return mInstance;
+    }
+
     public synchronized void setNotificationListener(NotificationListener listener) {
         mListener.add(listener);
     }

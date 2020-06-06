@@ -61,7 +61,7 @@ public class VncProjectionService extends Service
     private TextureRender mTextureRender;
     private SurfaceTexture mSurfaceTexture;
 
-    private VncJni mVncJni;
+    private VncJni mVncJni = VncJni.getInstance();
 
     public VncProjectionService() {
     }
@@ -93,7 +93,6 @@ public class VncProjectionService extends Service
         setupAndStartForegroundService();
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(
                 Context.MEDIA_PROJECTION_SERVICE);
-        mVncJni = new VncJni();
         mVncJni.setNotificationListener(VncProjectionService.this);
         mVncJni.init();
         Log.d(TAG, mVncJni.protoGetVersion());
